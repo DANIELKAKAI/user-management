@@ -3,6 +3,7 @@ import datetime
 
 from django.contrib.auth import authenticate, logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
 from django.http import HttpResponse
@@ -32,7 +33,7 @@ from users.serializers import (
     ProfileSerializer,
     ResidentialAddressSerializer,
 )
-from users.utils import EmailThread, account_activation_token
+from users.utils import account_activation_token
 
 
 @csrf_exempt
@@ -78,7 +79,7 @@ def signup(request):
     serializer = SignUpSerializer(data=request.data)
     if serializer.is_valid(raise_exception=True):
         if User.objects.filter(
-            email=serializer.validated_data["email"]
+                email=serializer.validated_data["email"]
         ).exists():
             return Response(
                 {"error": "User already exists"}, status=HTTP_400_BAD_REQUEST
@@ -182,7 +183,7 @@ def change_password(request):
     )
 
 
-class UserView(APIView):
+class UserView(LoginRequiredMixin, APIView):
     """
     API endpoint that allows users to be viewed.
     """
@@ -192,11 +193,9 @@ class UserView(APIView):
         return Response(serializer.data, status=HTTP_200_OK)
 
 
-class ProfileView(APIView):
+class ProfileView(LoginRequiredMixin, APIView):
     def get(self, request):
         user = request.user
-        if not user.is_authenticated:
-            return Response({"error": "Forbidden"}, status=HTTP_403_FORBIDDEN)
         try:
             profile = Profile.objects.get(user__id=user.id)
         except ObjectDoesNotExist:
@@ -230,7 +229,7 @@ class ProfileView(APIView):
         return Response({"message": "Profile ID deleted"}, status=HTTP_200_OK)
 
 
-class ResidentialAddressView(APIView):
+class ResidentialAddressView(LoginRequiredMixin, APIView):
     def get(self, request):
         user = request.user
         if not user.is_authenticated:

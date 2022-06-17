@@ -21,7 +21,6 @@ from rest_framework.status import (
     HTTP_400_BAD_REQUEST,
     HTTP_201_CREATED,
     HTTP_200_OK,
-    HTTP_403_FORBIDDEN,
     HTTP_404_NOT_FOUND,
 )
 from rest_framework.views import APIView
@@ -209,8 +208,6 @@ class ProfileView(APIView):
 
     def put(self, request):
         user = request.user
-        if not user.is_authenticated:
-            return Response({"error": "Forbidden"}, status=HTTP_403_FORBIDDEN)
         data = request.data
         data["user_id"] = user.id
         profile = Profile.objects.filter(user__id=user.id).first()
@@ -226,8 +223,6 @@ class ProfileView(APIView):
 
     def delete(self, request):
         user = request.user
-        if not user.is_authenticated:
-            return Response({"error": "Forbidden"}, status=HTTP_403_FORBIDDEN)
         profile = Profile.objects.filter(user__id=user.id).first()
         profile.delete()
         return Response({"message": "Profile ID deleted"}, status=HTTP_200_OK)
@@ -238,8 +233,6 @@ class ResidentialAddressView(APIView):
 
     def get(self, request):
         user = request.user
-        if not user.is_authenticated:
-            return Response({"error": "Forbidden"}, status=HTTP_403_FORBIDDEN)
         try:
             address = ResidentialAddress.objects.get(user__id=user.id)
         except ObjectDoesNotExist:
@@ -249,8 +242,6 @@ class ResidentialAddressView(APIView):
 
     def put(self, request):
         user = request.user
-        if not user.is_authenticated:
-            return Response({"error": "Forbidden"}, status=HTTP_403_FORBIDDEN)
         data = request.data
         data["user_id"] = user.id
         address = ResidentialAddress.objects.filter(user__id=user.id).first()
@@ -266,8 +257,6 @@ class ResidentialAddressView(APIView):
 
     def delete(self, request):
         user = request.user
-        if not user.is_authenticated:
-            return Response({"error": "Forbidden"}, status=HTTP_403_FORBIDDEN)
         address = ResidentialAddress.objects.filter(user__id=user.id).first()
         address.delete()
         return Response(

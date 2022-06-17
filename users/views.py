@@ -15,7 +15,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import (
     HTTP_400_BAD_REQUEST,
@@ -79,7 +79,7 @@ def signup(request):
     serializer = SignUpSerializer(data=request.data)
     if serializer.is_valid(raise_exception=True):
         if User.objects.filter(
-                email=serializer.validated_data["email"]
+            email=serializer.validated_data["email"]
         ).exists():
             return Response(
                 {"error": "User already exists"}, status=HTTP_400_BAD_REQUEST
@@ -188,12 +188,16 @@ class UserView(LoginRequiredMixin, APIView):
     API endpoint that allows users to be viewed.
     """
 
+    permission_classes = (IsAuthenticated,)
+
     def get(self, request):
         serializer = UserSerializer(request.user)
         return Response(serializer.data, status=HTTP_200_OK)
 
 
-class ProfileView(LoginRequiredMixin, APIView):
+class ProfileView(APIView):
+    permission_classes = (IsAuthenticated,)
+
     def get(self, request):
         user = request.user
         try:
@@ -229,7 +233,9 @@ class ProfileView(LoginRequiredMixin, APIView):
         return Response({"message": "Profile ID deleted"}, status=HTTP_200_OK)
 
 
-class ResidentialAddressView(LoginRequiredMixin, APIView):
+class ResidentialAddressView(APIView):
+    permission_classes = (IsAuthenticated,)
+
     def get(self, request):
         user = request.user
         if not user.is_authenticated:

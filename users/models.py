@@ -63,7 +63,7 @@ class Profile(models.Model):
     last_name = models.CharField(max_length=256)
     dob = models.DateField()
     nationality = models.CharField(max_length=256)
-    phone_number = models.CharField(max_length=13)
+    phone_number = models.CharField(max_length=13, unique=True)
 
 
 class ResidentialAddress(models.Model):

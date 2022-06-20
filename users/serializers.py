@@ -27,6 +27,13 @@ class SignUpSerializer(serializers.HyperlinkedModelSerializer):
             raise serializers.ValidationError(errors)
         return super(SignUpSerializer, self).validate(data)
 
+    def create(self, validated_data):
+        password = validated_data["password"]
+        instance = self.Meta.model(**validated_data)
+        instance.set_password(password)
+        instance.save()
+        return instance
+
 
 class ProfileSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:

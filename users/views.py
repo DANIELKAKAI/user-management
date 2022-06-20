@@ -83,12 +83,7 @@ def signup(request):
             return Response(
                 {"error": "User already exists"}, status=HTTP_400_BAD_REQUEST
             )
-        user = User.objects.create_user(
-            email=serializer.validated_data["email"],
-            first_name=serializer.validated_data["first_name"],
-            password=serializer.validated_data["password"],
-        )
-        user.save()
+        user = serializer.save()
         serializer = UserSerializer(user)
         current_site = get_current_site(request)
         activation_link = f"http://{current_site.domain}/activate/{urlsafe_base64_encode(force_bytes(user.id))}/{account_activation_token.make_token(user)}"
@@ -199,24 +194,27 @@ class ProfileView(APIView):
 
     def get(self, request):
         user = request.user
-        try:
-            profile = Profile.objects.get(user__id=user.id)
-        except ObjectDoesNotExist:
-            return Response(status=HTTP_404_NOT_FOUND)
+        profile = get_object_or_404(Profile, user_id=user.id)
         serializer = ProfileSerializer(profile)
+        return Response(serializer.data, status=HTTP_200_OK)
+
+    def post(self, request):
+        user = request.user
+        data = request.data
+        data["user_id"] = user.id
+        serializer = ProfileSerializer(data=data)
+        if serializer.is_valid(raise_exception=True):
+            _saved_instance = serializer.save()
         return Response(serializer.data, status=HTTP_200_OK)
 
     def put(self, request):
         user = request.user
         data = request.data
         data["user_id"] = user.id
-        profile = Profile.objects.filter(user__id=user.id).first()
-        if profile:
-            serializer = ProfileSerializer(
-                data=data, instance=profile, partial=True
-            )
-        else:
-            serializer = ProfileSerializer(data=data)
+        profile = get_object_or_404(Profile, user_id=user.id)
+        serializer = ProfileSerializer(
+            data=data, instance=profile, partial=True
+        )
         if serializer.is_valid(raise_exception=True):
             _saved_instance = serializer.save()
         return Response(serializer.data, status=HTTP_200_OK)
@@ -233,24 +231,27 @@ class ResidentialAddressView(APIView):
 
     def get(self, request):
         user = request.user
-        try:
-            address = ResidentialAddress.objects.get(user__id=user.id)
-        except ObjectDoesNotExist:
-            return Response(status=HTTP_404_NOT_FOUND)
+        address = get_object_or_404(ResidentialAddress, user_id=user.id)
         serializer = ResidentialAddressSerializer(address)
+        return Response(serializer.data, status=HTTP_200_OK)
+
+    def post(self, request):
+        user = request.user
+        data = request.data
+        data["user_id"] = user.id
+        serializer = ResidentialAddressSerializer(data=data)
+        if serializer.is_valid(raise_exception=True):
+            _saved_instance = serializer.save()
         return Response(serializer.data, status=HTTP_200_OK)
 
     def put(self, request):
         user = request.user
         data = request.data
         data["user_id"] = user.id
-        address = ResidentialAddress.objects.filter(user__id=user.id).first()
-        if address:
-            serializer = ResidentialAddressSerializer(
-                data=request.data, instance=address, partial=True
-            )
-        else:
-            serializer = ResidentialAddressSerializer(data=data)
+        address = get_object_or_404(ResidentialAddress, user_id=user.id)
+        serializer = ResidentialAddressSerializer(
+            data=request.data, instance=address, partial=True
+        )
         if serializer.is_valid(raise_exception=True):
             _saved_instance = serializer.save()
         return Response(serializer.data, status=HTTP_200_OK)
